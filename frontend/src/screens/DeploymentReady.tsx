@@ -4,6 +4,24 @@ import ScoreRing from "../components/ScoreRing";
 
 const CHECKS = ["Environment", "Dependencies", "Runtime", "Build", "Configuration"];
 
+// One-time success burst: deterministic outward spark pattern (no Math.random,
+// so the burst is stable rather than reshuffling on every render).
+const SPARK_COLORS = ["#10e8a0", "#5b7fff", "#a78bfa", "#f472b6"];
+const SPARKS = Array.from({ length: 16 }, (_, i) => {
+  const angle = (i / 16) * Math.PI * 2;
+  const dist = 130 + (i % 3) * 34;
+  return {
+    x: Math.cos(angle) * dist,
+    y: Math.sin(angle) * dist,
+    color: SPARK_COLORS[i % SPARK_COLORS.length],
+  };
+});
+const BURST_RINGS = [
+  { color: "rgba(16,232,160,0.55)", delay: 0.05, size: 640 },
+  { color: "rgba(91,127,255,0.45)", delay: 0.12, size: 760 },
+  { color: "rgba(167,139,250,0.35)", delay: 0.19, size: 880 },
+];
+
 export default function DeploymentReady({ project, onReset }: { project: string; onReset: () => void }) {
   return (
     <motion.div
@@ -41,6 +59,45 @@ export default function DeploymentReady({ project, onReset }: { project: string;
           transition={{ duration: 2.5, delay: i * 0.35, repeat: Infinity, ease: "easeOut" }}
         />
       ))}
+
+      {/* One-time success shockwave — fires once on mount, layered on the ambient glow above */}
+      <div className="absolute top-1/2 left-1/2 pointer-events-none" style={{ transform: "translate(-50%, -50%)" }}>
+        {/* Flash */}
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: 40, height: 40, left: -20, top: -20,
+            background: "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(16,232,160,0.35) 35%, transparent 70%)",
+          }}
+          initial={{ opacity: 0, scale: 0.3 }}
+          animate={{ opacity: [0, 1, 0], scale: [0.3, 3.4, 4.6] }}
+          transition={{ duration: 0.9, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+        />
+
+        {/* Fast shockwave rings */}
+        {BURST_RINGS.map((ring, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full"
+            style={{ left: 0, top: 0, transform: "translate(-50%,-50%)", border: `1.5px solid ${ring.color}` }}
+            initial={{ width: 20, height: 20, opacity: 0.9 }}
+            animate={{ width: ring.size, height: ring.size, opacity: 0 }}
+            transition={{ duration: 1.1, delay: ring.delay, ease: [0.16, 1, 0.3, 1] }}
+          />
+        ))}
+
+        {/* Outward sparks */}
+        {SPARKS.map((s, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full"
+            style={{ width: 4, height: 4, left: -2, top: -2, background: s.color }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            animate={{ x: s.x, y: s.y, opacity: 0, scale: 0.3 }}
+            transition={{ duration: 1.0, delay: 0.1, ease: "easeOut" }}
+          />
+        ))}
+      </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8">
@@ -122,10 +179,14 @@ export default function DeploymentReady({ project, onReset }: { project: string;
           transition={{ delay: 0.75 }}
         >
           <div className="flex gap-3">
-            <button className="btn btn-ghost">
+            <motion.button
+              className="btn btn-ghost"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+            >
               <FileText size={14} />
               View Audit Report
-            </button>
+            </motion.button>
             <motion.button
               className="btn btn-success"
               style={{ padding: "0.65rem 1.75rem", fontSize: "0.88rem" }}
@@ -137,14 +198,16 @@ export default function DeploymentReady({ project, onReset }: { project: string;
             </motion.button>
           </div>
 
-          <button
+          <motion.button
             className="flex items-center gap-1.5 mt-2"
             style={{ color: "rgba(136,136,176,0.35)" }}
             onClick={onReset}
+            whileHover={{ color: "rgba(136,136,176,0.65)" }}
+            whileTap={{ scale: 0.96 }}
           >
             <RotateCcw size={11} />
             <span className="t-caption" style={{ color: "inherit" }}>Start new audit</span>
-          </button>
+          </motion.button>
         </motion.div>
       </div>
     </motion.div>

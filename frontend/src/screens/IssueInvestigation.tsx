@@ -39,7 +39,7 @@ export default function IssueInvestigation({ issue, onBack, onFix }: Props) {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="max-w-4xl 2xl:max-w-5xl mx-auto px-5 md:px-8 py-8 md:py-10">
+      <div className="page-shell">
         {/* Breadcrumb */}
         <button
           className="flex items-center gap-1.5 mb-6 group"
@@ -149,7 +149,7 @@ export default function IssueInvestigation({ issue, onBack, onFix }: Props) {
         </motion.div>
 
         {/* Info panels */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-7">
+        <div className="grid-info mb-7">
           {/* Why */}
           <motion.div
             className="panel p-4"
@@ -187,10 +187,15 @@ export default function IssueInvestigation({ issue, onBack, onFix }: Props) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25 }}
         >
-          <button className="btn btn-ghost" onClick={() => setTab("fix")}>
+          <motion.button
+            className="btn btn-ghost"
+            onClick={() => setTab("fix")}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+          >
             <Eye size={14} />
             Preview Fix
-          </button>
+          </motion.button>
           <motion.button
             className="btn btn-primary"
             style={{ padding: "0.65rem 1.5rem", fontSize: "0.85rem" }}

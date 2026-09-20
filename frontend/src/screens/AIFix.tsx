@@ -125,7 +125,7 @@ export default function AIFix({ issue, onApply, onReject }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="max-w-4xl 2xl:max-w-5xl mx-auto px-5 md:px-8 py-8 md:py-10">
+      <div className="page-shell">
         {/* Header */}
         <motion.div
           className="flex items-center gap-3.5 mb-8"
@@ -151,7 +151,7 @@ export default function AIFix({ issue, onApply, onReject }: Props) {
         </motion.div>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.35fr] gap-5 lg:gap-6">
+        <div className="grid-aifix">
           {/* Left: AI reasoning */}
           <div className="flex flex-col gap-4">
             {/* Steps */}
@@ -275,10 +275,16 @@ export default function AIFix({ issue, onApply, onReject }: Props) {
                   className="flex items-center gap-3 px-4 py-3"
                   style={{ borderTop: "1px solid var(--border)", background: "rgba(0,0,0,0.2)" }}
                 >
-                  <button className="btn btn-danger" style={{ padding: "0.45rem 1rem" }} onClick={onReject}>
+                  <motion.button
+                    className="btn btn-danger"
+                    style={{ padding: "0.45rem 1rem" }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onReject}
+                  >
                     <X size={13} />
                     Reject
-                  </button>
+                  </motion.button>
                   <motion.button
                     className="btn btn-success"
                     style={{ padding: "0.45rem 1.25rem" }}

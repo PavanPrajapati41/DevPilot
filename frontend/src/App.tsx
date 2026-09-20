@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 
 import { Screen, Issue, Category, ISSUES, CATEGORIES } from "./data";
+import BootScreen        from "./screens/BootScreen";
 import CommandCenter    from "./screens/CommandCenter";
 import LiveScan        from "./screens/LiveScan";
 import AuditDashboard  from "./screens/AuditDashboard";
@@ -45,7 +46,7 @@ function Sidebar({
 }: {
   screen: Screen; onNav: (s: Screen) => void;
 }) {
-  if (screen === "home") return null;
+  if (screen === "home" || screen === "boot") return null;
 
   return (
     <motion.nav
@@ -96,7 +97,7 @@ function BreadcrumbStrip({
 }: {
   screen: Screen; project: string; issueTitle?: string;
 }) {
-  if (screen === "home" || screen === "scan") return null;
+  if (screen === "home" || screen === "boot" || screen === "scan") return null;
 
   const crumbs = [
     { label: project, target: "dashboard" },
@@ -148,9 +149,18 @@ function Page({ children, k }: { children: React.ReactNode; k: string }) {
   );
 }
 
+const BOOT_SESSION_KEY = "devpilot_booted";
+
+function getInitialScreen(): Screen {
+  if (typeof window === "undefined") return "home";
+  const alreadyBooted = window.sessionStorage.getItem(BOOT_SESSION_KEY) === "1";
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  return alreadyBooted || reducedMotion ? "home" : "boot";
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [screen, setScreen]     = useState<Screen>("home");
+  const [screen, setScreen]     = useState<Screen>(getInitialScreen);
   const [project, setProject]   = useState("");
   const [issues, setIssues]     = useState<Issue[]>(ISSUES);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -161,6 +171,11 @@ export default function App() {
   const activeIssue = issues.find((i) => i.id === activeId) ?? null;
 
   const go = useCallback((s: Screen) => setScreen(s), []);
+
+  const handleBootDone = useCallback(() => {
+    window.sessionStorage.setItem(BOOT_SESSION_KEY, "1");
+    setScreen("home");
+  }, []);
 
   const handleAnalyze = (name: string) => {
     setProject(name);
@@ -212,6 +227,12 @@ export default function App() {
       />
 
       <AnimatePresence mode="wait">
+        {screen === "boot" && (
+          <motion.div key="boot" exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+            <BootScreen onContinue={handleBootDone} />
+          </motion.div>
+        )}
+
         {screen === "home" && (
           <motion.div key="home" exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.22 }}>
             <CommandCenter onAnalyze={handleAnalyze} />

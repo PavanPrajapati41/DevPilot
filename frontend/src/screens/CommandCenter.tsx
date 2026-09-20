@@ -220,14 +220,16 @@ export default function CommandCenter({ onAnalyze }: Props) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.36 }}
         >
-          <button
+          <motion.button
             className="btn btn-ghost flex-1"
             onClick={() => pick("my-nextjs-app")}
             style={{ justifyContent: "center" }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
             <FolderOpen size={14} />
             Browse Project
-          </button>
+          </motion.button>
 
           <motion.button
             className="btn btn-primary flex-[2]"

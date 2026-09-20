@@ -1,5 +1,6 @@
 export type Severity = "critical" | "warning" | "info";
 export type Screen =
+  | "boot"
   | "home"
   | "scan"
   | "dashboard"

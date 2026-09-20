@@ -61,7 +61,7 @@ export default function AuditDashboard({ project, issues, categories, score, onI
       exit={{ opacity: 0 }}
       style={{ paddingLeft: "60px" }}
     >
-      <div className="max-w-5xl 2xl:max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-10">
+      <div className="page-shell page-shell--wide">
         {/* Header row */}
         <motion.div
           className="flex items-center justify-between mb-8"
@@ -76,13 +76,18 @@ export default function AuditDashboard({ project, issues, categories, score, onI
             </div>
             <h1 className="t-headline">Deployment Health</h1>
           </div>
-          <button className="btn btn-ghost" onClick={onRescan}>
+          <motion.button
+            className="btn btn-ghost"
+            onClick={onRescan}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+          >
             <RefreshCw size={13} />
             Re-scan
-          </button>
+          </motion.button>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6 md:gap-8">
+        <div className="grid-dashboard">
           {/* ── Left: Score + stats ─────────────────────────────── */}
           <div className="flex flex-col gap-4">
             <motion.div
@@ -143,6 +148,7 @@ export default function AuditDashboard({ project, issues, categories, score, onI
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.15 + i * 0.06 }}
+                    whileHover={{ borderColor: "rgba(120,120,220,0.28)", backgroundColor: "rgba(120,120,220,0.05)" }}
                   >
                     {/* Color dot */}
                     <div
