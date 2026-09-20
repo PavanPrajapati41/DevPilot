@@ -13,6 +13,8 @@ import IssueInvestigation from "./screens/IssueInvestigation";
 import AIFix           from "./screens/AIFix";
 import ReAudit         from "./screens/ReAudit";
 import DeploymentReady from "./screens/DeploymentReady";
+import { uploadProject } from "./api/client";
+import type { AuditIssue } from "./api/client";
 
 // ── Score helper ──────────────────────────────────────────────────────────────
 function calcScore(issues: Issue[]): number {
@@ -158,6 +160,55 @@ function getInitialScreen(): Screen {
   return alreadyBooted || reducedMotion ? "home" : "boot";
 }
 
+function mapAuditIssue(issue: AuditIssue): Issue {
+  let category = "Config";
+
+  if (issue.rule_id.startsWith("PORT")) {
+    category = "Runtime";
+  } else if (issue.rule_id.startsWith("DEP")) {
+    category = "Dependencies";
+  } else if (issue.rule_id.startsWith("ENV")) {
+    category = "Environment";
+  } else if (issue.rule_id.startsWith("BUILD")) {
+    category = "Build";
+  }
+
+  let severity: Issue["severity"] = "info";
+
+  if (
+    issue.severity === "critical" ||
+    issue.severity === "high"
+  ) {
+    severity = issue.severity === "critical"
+      ? "critical"
+      : "warning";
+  } else if (issue.severity === "medium") {
+    severity = "warning";
+  }
+
+  return {
+    id: issue.rule_id,
+    title: issue.title,
+    file: issue.file ?? "Unknown file",
+    line: issue.line ?? 1,
+    severity,
+    category,
+    summary: issue.message,
+    why: issue.message,
+    impact: issue.fix
+      ? `Fix recommended: ${issue.fix}`
+      : "This issue may affect deployment reliability.",
+    before: [
+      issue.message,
+    ],
+    after: issue.fix
+      ? [issue.fix]
+      : ["No automatic fix information provided."],
+    highlightLine: 0,
+    fixed: false,
+  };
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen]     = useState<Screen>(getInitialScreen);
@@ -165,6 +216,9 @@ export default function App() {
   const [issues, setIssues]     = useState<Issue[]>(ISSUES);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [prevScore, setPrevScore] = useState(82);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditReady, setAuditReady] = useState(false);
+ 
 
   const score      = calcScore(issues);
   const categories = calcCategories(issues);
@@ -177,11 +231,36 @@ export default function App() {
     setScreen("home");
   }, []);
 
-  const handleAnalyze = (name: string) => {
-    setProject(name);
-    setScreen("scan");
-  };
+  const handleAnalyze = async (name: string, files: File[]) => {
+  console.log("Project:", name);
+  console.log("Files count:", files.length);
+  console.log(
+    "Files:",
+    files.map((file) => ({
+      name: file.name,
+      relativePath: file.webkitRelativePath,
+    }))
+  );
 
+  setProject(name);
+  setAuditReady(false);
+  setScreen("scan");
+
+  try {
+    console.log("FILES SELECTED:", files.length);
+    const result = await uploadProject(files);
+
+    const mappedIssues = result.issues.map(mapAuditIssue);
+
+    setIssues(mappedIssues);
+    setAuditReady(true);
+
+    console.log("Audit result:", result);
+    console.log("Mapped issues:", mappedIssues);
+  } catch (error) {
+    console.error("Audit failed:", error);
+  }
+};
   const handleInvestigate = (id: string) => {
     setActiveId(id);
     setScreen("investigation");
@@ -239,12 +318,15 @@ export default function App() {
           </motion.div>
         )}
 
-        {screen === "scan" && (
-          <Page k="scan">
-            <LiveScan project={project} onComplete={() => go("dashboard")} />
-          </Page>
-        )}
-
+       {screen === "scan" && (
+  <Page k="scan">
+    <LiveScan
+      project={project}
+      auditReady={auditReady}
+      onComplete={() => go("dashboard")}
+    />
+  </Page>
+)}
         {screen === "dashboard" && (
           <Page k="dashboard">
             <AuditDashboard
