@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.api.routes.audit import router as audit_router
-from app.rules.dependency_rule import check_dependencies
+
 
 app = FastAPI(
     title="DevPilot API",
