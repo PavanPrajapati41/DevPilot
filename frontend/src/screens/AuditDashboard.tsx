@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, AlertTriangle, XCircle, ChevronRight, RefreshCw, BarChart2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, XCircle, ChevronRight, RefreshCw, BarChart2, Sparkles } from "lucide-react";
 import ScoreRing from "../components/ScoreRing";
 import { Issue, Category } from "../data";
 
@@ -43,11 +43,12 @@ interface Props {
   issues: Issue[];
   categories: Category[];
   score: number;
+  aiAnalysis?: string | null;
   onInvestigate: (id: string) => void;
   onRescan: () => void;
 }
 
-export default function AuditDashboard({ project, issues, categories, score, onInvestigate, onRescan }: Props) {
+export default function AuditDashboard({ project, issues, categories, score, aiAnalysis, onInvestigate, onRescan }: Props) {
   const open      = issues.filter((i) => !i.fixed);
   const fixed     = issues.filter((i) => i.fixed);
   const criticals = open.filter((i) => i.severity === "critical").length;
@@ -86,6 +87,27 @@ export default function AuditDashboard({ project, issues, categories, score, onI
             Re-scan
           </motion.button>
         </motion.div>
+
+        {aiAnalysis && (
+          <motion.div
+            className="panel p-5 mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            style={{ border: "1px solid rgba(91,127,255,0.16)" }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={13} style={{ color: "var(--accent)" }} />
+              <span className="t-caption" style={{ color: "var(--accent)" }}>AI Deployment Report</span>
+            </div>
+            <p
+              className="t-body"
+              style={{ whiteSpace: "pre-wrap", color: "var(--text-2)" }}
+            >
+              {aiAnalysis}
+            </p>
+          </motion.div>
+        )}
 
         <div className="grid-dashboard">
           {/* ── Left: Score + stats ─────────────────────────────── */}

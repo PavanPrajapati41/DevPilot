@@ -218,6 +218,7 @@ export default function App() {
   const [prevScore, setPrevScore] = useState(82);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditReady, setAuditReady] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
  
 
   const score      = calcScore(issues);
@@ -244,6 +245,7 @@ export default function App() {
 
   setProject(name);
   setAuditReady(false);
+  setAiAnalysis(null);
   setScreen("scan");
 
   try {
@@ -253,12 +255,22 @@ export default function App() {
     const mappedIssues = result.issues.map(mapAuditIssue);
 
     setIssues(mappedIssues);
+    setAiAnalysis(result.ai_analysis ?? null);
     setAuditReady(true);
 
     console.log("Audit result:", result);
     console.log("Mapped issues:", mappedIssues);
   } catch (error) {
     console.error("Audit failed:", error);
+
+    // Don't leave the scan screen stuck forever: fall back to the bundled
+    // sample audit so the flow can still be demoed end-to-end.
+    setIssues(ISSUES);
+    setAiAnalysis(
+      "Couldn't reach the DevPilot backend, so this is a sample audit instead of a live one. " +
+      "Make sure the FastAPI server is running, then try again."
+    );
+    setAuditReady(true);
   }
 };
   const handleInvestigate = (id: string) => {
@@ -285,6 +297,7 @@ export default function App() {
     setIssues(ISSUES);
     setActiveId(null);
     setProject("");
+    setAiAnalysis(null);
     setScreen("home");
   };
 
@@ -334,6 +347,7 @@ export default function App() {
               issues={issues}
               categories={categories}
               score={score}
+              aiAnalysis={aiAnalysis}
               onInvestigate={handleInvestigate}
               onRescan={() => go("scan")}
             />

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.concurrency import run_in_threadpool
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 
@@ -10,6 +11,7 @@ from app.models.audit import (
 from app.services.project_scanner import scan_project
 from app.services.project_detector import detect_project_type
 from app.rules.engine import run_rules
+from app.services.ai_analyzer import analyze_issues
 
 
 router = APIRouter()
@@ -37,6 +39,17 @@ def audit_project(request: AuditRequest):
             for issue in raw_issues
         ]
 
+        try:
+            ai_analysis = analyze_issues(
+                raw_issues,
+                project_types,
+            )
+        except Exception as error:
+            ai_analysis = (
+                "AI analysis unavailable. "
+                f"Deterministic audit completed successfully: {error}"
+            )
+
         return AuditResponse(
             status="completed",
             project_path=scan_result["project_path"],
@@ -44,6 +57,7 @@ def audit_project(request: AuditRequest):
             files_scanned=scan_result["file_count"],
             issues_found=len(issues),
             issues=issues,
+            ai_analysis=ai_analysis,
         )
 
     except (
@@ -114,6 +128,18 @@ async def audit_uploaded_project(
             for issue in raw_issues
         ]
 
+        try:
+            ai_analysis = await run_in_threadpool(
+                analyze_issues,
+                raw_issues,
+                project_types,
+            )
+        except Exception as error:
+            ai_analysis = (
+                "AI analysis unavailable. "
+                f"Deterministic audit completed successfully: {error}"
+            )
+
         return AuditResponse(
             status="completed",
             project_path=str(project_root),
@@ -121,4 +147,5 @@ async def audit_uploaded_project(
             files_scanned=scan_result["file_count"],
             issues_found=len(issues),
             issues=issues,
+            ai_analysis=ai_analysis,
         )

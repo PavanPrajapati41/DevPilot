@@ -13,7 +13,7 @@ def analyze_issues(
     project_type: list[str] | None = None,
 ) -> str:
     """
-    Use Claude through Amazon Bedrock to analyze audit issues.
+    Use a local Ollama model (via Strands Agents) to analyze audit issues.
     """
 
     if not issues:

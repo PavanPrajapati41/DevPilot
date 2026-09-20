@@ -28,3 +28,4 @@ class AuditResponse(BaseModel):
     files_scanned: int
     issues_found: int
     issues: list[AuditIssue]
+    ai_analysis: str | None = None

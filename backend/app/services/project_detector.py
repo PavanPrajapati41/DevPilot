@@ -12,7 +12,7 @@ def detect_project_type(project_path: str) -> list[str]:
     if (root / "requirements.txt").exists():
         detected.append("python")
 
-    if (root / "pyproject.toml").exists():
+    if (root / "pyproject.toml").exists() and "python" not in detected:
         detected.append("python")
 
     if (root / "Dockerfile").exists():

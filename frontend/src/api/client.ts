@@ -27,6 +27,7 @@ export interface AuditResponse {
   files_scanned: number;
   issues_found: number;
   issues: AuditIssue[];
+  ai_analysis?: string | null;
 }
 
 export async function runAudit(
