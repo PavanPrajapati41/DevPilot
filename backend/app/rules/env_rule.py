@@ -1,20 +1,9 @@
 from pathlib import Path
 
-
-IGNORED_DIRECTORIES = {
-    ".git",
-    ".env",
-    "node_modules",
-    "__pycache__",
-    ".venv",
-    "venv",
-    "dist",
-    "build",
-}
+from ..utils.filesystem import list_project_files, read_project_file
 
 
 def check_environment_usage(project_path: str) -> list[dict]:
-    root = Path(project_path)
     issues = []
 
     suspicious_patterns = [
@@ -26,35 +15,29 @@ def check_environment_usage(project_path: str) -> list[dict]:
         "OPENAI_API_KEY=",
     ]
 
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
+    ignored_files = {
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+    }
 
-        if any(
-            part in IGNORED_DIRECTORIES
-            for part in path.parts
-        ):
-            continue
+    for file_path in list_project_files(project_path):
+        path = Path(file_path)
 
-        # Don't scan common dependency/lock files.
-        if path.name in {
-            "package-lock.json",
-            "yarn.lock",
-            "pnpm-lock.yaml",
-        }:
+        if path.name in ignored_files:
             continue
 
         try:
-            content = path.read_text(
-                encoding="utf-8",
-                errors="ignore"
+            content = read_project_file(
+                project_path,
+                file_path,
             )
-        except OSError:
+        except (OSError, ValueError, PermissionError):
             continue
 
         for line_number, line in enumerate(
             content.splitlines(),
-            start=1
+            start=1,
         ):
             for pattern in suspicious_patterns:
                 if pattern in line:
@@ -67,8 +50,8 @@ def check_environment_usage(project_path: str) -> list[dict]:
                             "environment variable appears to "
                             "be hardcoded in source code."
                         ),
-                        "file": str(
-                            path.relative_to(root)
+                       "file": str(
+                         path.relative_to(Path(project_path))
                         ),
                         "line": line_number,
                         "fix": (

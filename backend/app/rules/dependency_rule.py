@@ -1,23 +1,25 @@
 import json
 from pathlib import Path
 
+from ..utils.filesystem import read_project_file
+
 
 def check_dependencies(project_path: str) -> list[dict]:
-    root = Path(project_path)
     issues = []
 
-    package_file = root / "package.json"
+    package_file = Path(project_path) / "package.json"
 
     if not package_file.exists():
         return issues
 
     try:
-        package_data = json.loads(
-            package_file.read_text(
-                encoding="utf-8"
-            )
+        content = read_project_file(
+            project_path,
+            str(package_file),
         )
-    except (OSError, json.JSONDecodeError):
+        package_data = json.loads(content)
+
+    except (OSError, ValueError, PermissionError, json.JSONDecodeError):
         return issues
 
     dependencies = package_data.get(

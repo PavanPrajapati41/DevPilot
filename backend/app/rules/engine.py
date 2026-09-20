@@ -1,7 +1,8 @@
-from app.rules.port_rule import check_hardcoded_port
-from app.rules.env_rule import check_environment_usage
-from app.rules.start_rule import check_start_command
-from app.rules.dependency_rule import check_dependencies
+from .port_rule import check_hardcoded_port
+from .env_rule import check_environment_usage
+from .start_rule import check_start_command
+from .dependency_rule import check_dependencies
+
 RULES = [
     check_hardcoded_port,
     check_environment_usage,

@@ -1,16 +1,6 @@
 from pathlib import Path
 
-
-IGNORED_DIRECTORIES = {
-    ".git",
-    ".env",
-    "node_modules",
-    "__pycache__",
-    ".venv",
-    "venv",
-    "dist",
-    "build",
-}
+from ..utils.filesystem import list_project_files, read_project_file
 
 
 def check_hardcoded_port(project_path: str) -> list[dict]:
@@ -29,27 +19,18 @@ def check_hardcoded_port(project_path: str) -> list[dict]:
         ".listen(8000",
     ]
 
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-
-        if any(
-            part in IGNORED_DIRECTORIES
-            for part in path.parts
-        ):
-            continue
-
+    for file_path in list_project_files(project_path):
         try:
-            content = path.read_text(
-                encoding="utf-8",
-                errors="ignore"
+            content = read_project_file(
+                project_path,
+                file_path,
             )
-        except OSError:
+        except (OSError, ValueError, PermissionError):
             continue
 
         for line_number, line in enumerate(
             content.splitlines(),
-            start=1
+            start=1,
         ):
             if any(
                 pattern.lower() in line.lower()
@@ -63,7 +44,9 @@ def check_hardcoded_port(project_path: str) -> list[dict]:
                         "The application appears to use a "
                         "hardcoded port."
                     ),
-                    "file": str(path.relative_to(root)),
+                    "file": str(
+                        Path(file_path).relative_to(root)
+                    ),
                     "line": line_number,
                     "fix": (
                         "Read the port from the PORT "
