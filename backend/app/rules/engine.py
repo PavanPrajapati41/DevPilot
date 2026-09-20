@@ -6,6 +6,7 @@ RULES = [
     check_hardcoded_port,
     check_environment_usage,
     check_start_command,
+    check_dependencies,
 ]
 
 
